@@ -14,10 +14,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: current
-      - run: gradle build --no-daemon
+      - name: Build
+        run: |
+          dir=$(dirname "$(find . -name build.gradle -not -path './.git/*' | head -n 1)")
+          echo "Building in $dir"
+          cd "$dir"
+          gradle build --no-daemon
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          cp build/libs/*.jar "$GITHUB_WORKSPACE/out/"
+          rm -f "$GITHUB_WORKSPACE"/out/*-sources.jar
       - uses: actions/upload-artifact@v4
         with:
           name: booms-all-in-one-tool
-          path: |
-            build/libs/*.jar
-            !build/libs/*-sources.jar
+          path: out/*.jar
